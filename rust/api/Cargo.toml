@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 firerust = "1.0.1"
 serde_json = "1.0.89"
+actix-web = "4"
+futures = "0.3"
