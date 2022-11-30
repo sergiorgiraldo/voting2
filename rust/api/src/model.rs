@@ -1,2 +1,2 @@
-pub use self::default::{User, Poll};
+pub use self::default::{Poll, User};
 mod default;
