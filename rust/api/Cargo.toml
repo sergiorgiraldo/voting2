@@ -1,0 +1,12 @@
+[package]
+name = "api"
+version = "1.0.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+firebase-rs = "2.0.5" #https://github.com/emreyalvac/firebase-rs
+serde = { version = "1", features = ["derive"] }
+actix-web = "4"
+futures = "0.3"
