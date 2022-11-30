@@ -1,6 +1,7 @@
-use firerust::FirebaseClient;
-use serde_json::Value;
-use actix_web::{get, post, web, Result, App, HttpResponse, HttpServer, Responder};
+use firebase_rs::*;
+use serde::{Deserialize, Serialize};
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result};
+use std::collections::HashMap;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -16,23 +17,44 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-#[get("/users")]
-async fn get_users()-> impl Responder{
-    let firebase = FirebaseClient::new("https://voting-509cd-default-rtdb.europe-west1.firebasedatabase.app/").unwrap();
-    let users = firebase.reference("/User");
-    HttpResponse::Ok().json(format!("{:?}", users.get::<Value>().unwrap()))
+#[allow(non_snake_case)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+struct User {
+    Email: String,
+    Password: String,
+    Admin: bool,
 }
 
-#[get("/user/{user_id}")]
-async fn get_user(user: web::Path<i32>)-> impl Responder{
-    HttpResponse::Ok().json(format!("The user {}", user))
+#[allow(non_snake_case)]
+#[derive(Debug, Deserialize, Serialize)]
+struct Poll {
+    Status: String,
+    Questions: HashMap<String, i32>,
 }
+
+
+#[get("/users")]
+async fn get_users()-> Result<impl Responder>{
+    let firebase = Firebase::new("https://voting-509cd-default-rtdb.europe-west1.firebasedatabase.app/").unwrap();
+    let users = firebase.at("/User");
+    let parsed = users.get::<HashMap<String, User>>().await;
+    Ok(web::Json(parsed.unwrap()))
+}
+
+#[get("/user/{username}")]
+async fn get_user(user: web::Path<String>)-> Result<impl Responder>{
+    let firebase = Firebase::new("https://voting-509cd-default-rtdb.europe-west1.firebasedatabase.app/").unwrap();
+    let users = firebase.at("/User");
+    let parsed = users.get::<HashMap<String, User>>().await.unwrap();
+    let user_selected = &parsed[&user.to_string()];
+    Ok(web::Json(user_selected.to_owned()))}
 
 #[get("/polls")]
-async fn get_polls()-> impl Responder{
-    let firebase = FirebaseClient::new("https://voting-509cd-default-rtdb.europe-west1.firebasedatabase.app/").unwrap();
-    let polls = firebase.reference("/Poll");
-    HttpResponse::Ok().json(format!("{:?}", polls.get::<Value>().unwrap()))
+async fn get_polls()-> Result<impl Responder>{
+    let firebase = Firebase::new("https://voting-509cd-default-rtdb.europe-west1.firebasedatabase.app/").unwrap();
+    let polls = firebase.at("/Poll");
+    let parsed = polls.get::<HashMap<String, Poll>>().await;
+    Ok(web::Json(parsed.unwrap()))
 }
 
 #[get("/poll/{poll_id}")]
